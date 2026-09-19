@@ -59,6 +59,7 @@ app.use('/api/', apiLimiter);
 
 // 6. Serve Static Frontend Files
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 // 7. API Routes
 app.use('/api/auth', authRoutes);
