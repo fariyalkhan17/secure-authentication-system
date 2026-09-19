@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Authentication & RBAC System | Cybersecurity Learning Lab</title>
+  <meta name="description" content="A secure login, registration, and role-based access control web application built with Node.js, Express, SQLite, HTML5, CSS3, and JavaScript for web development and cybersecurity learning.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Background Decorative Glows -->
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <!-- Main Container -->
+  <div class="app-container">
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="shield-icon">🛡️</div>
+        <div>
+          <h1>SecureAuth <span class="badge-lab">Lab</span></h1>
+          <p class="header-subtitle">Node.js • Express • SQLite • Bcrypt • RBAC Security Lab</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs">
+        <button class="nav-btn active" data-tab="auth-tab" id="nav-auth">
+          <span class="icon">🔑</span> Authentication
+        </button>
+        <button class="nav-btn" data-tab="dashboard-tab" id="nav-dashboard">
+          <span class="icon">👤</span> User Dashboard
+        </button>
+        <button class="nav-btn" data-tab="admin-tab" id="nav-admin">
+          <span class="icon">⚡</span> Admin Control Panel
+        </button>
+        <button class="nav-btn" data-tab="learning-tab" id="nav-learning">
+          <span class="icon">📚</span> Security Concepts
+        </button>
+      </nav>
+
+      <!-- User Auth State Badge -->
+      <div class="user-status-bar" id="user-status-bar">
+        <span class="status-indicator offline" id="status-indicator"></span>
+        <span id="user-status-text">Not Authenticated</span>
+        <button class="btn-logout hidden" id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- ================= TAB 1: AUTHENTICATION (REGISTER / LOGIN) ================= -->
+      <section class="tab-panel active" id="auth-tab">
+        <div class="auth-grid">
+          
+          <!-- Auth Form Card -->
+          <div class="card glass-card auth-card">
+            
+            <!-- Auth Toggle Tabs -->
+            <div class="auth-toggle">
+              <button class="auth-tab-btn active" id="toggle-login">Log In</button>
+              <button class="auth-tab-btn" id="toggle-register">Create Account</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" class="auth-form">
+              <div class="form-header">
+                <h2>Welcome Back</h2>
+                <p>Sign in with your credentials to access your protected user area.</p>
+              </div>
+
+              <div class="form-group">
+                <label for="login-email">Email Address</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">📧</span>
+                  <input type="email" id="login-email" placeholder="user@example.com" required autocomplete="email">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="login-password">Password</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">🔒</span>
+                  <input type="password" id="login-password" placeholder="••••••••••••" required autocomplete="current-password">
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block" id="btn-login">
+                <span>Sign In to Account</span>
+              </button>
+
+              <!-- Quick Demo Login Presets -->
+              <div class="demo-login-box">
+                <p class="demo-title">⚡ Quick Test Accounts (Auto-seeded)</p>
+                <div class="demo-buttons">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-demo-user">
+                    👤 Fill Standard User
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-demo-admin">
+                    👑 Fill Admin User
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <!-- Registration Form -->
+            <form id="form-register" class="auth-form hidden">
+              <div class="form-header">
+                <h2>Create Account</h2>
+                <p>Register with secure password hashing and strict input validation.</p>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-username">Username</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">👤</span>
+                  <input type="text" id="reg-username" placeholder="cyber_coder" required autocomplete="username">
+                </div>
+                <small class="form-hint">3-30 chars, alphanumeric & underscores only (Sanitized against XSS)</small>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-email">Email Address</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">📧</span>
+                  <input type="email" id="reg-email" placeholder="coder@example.com" required autocomplete="email">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-password">Password</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">🔒</span>
+                  <input type="password" id="reg-password" placeholder="Min 8 chars with uppercase, digit, special" required autocomplete="new-password">
+                </div>
+                
+                <!-- Dynamic Password Strength Meter -->
+                <div class="strength-meter">
+                  <div class="strength-bar" id="strength-bar"></div>
+                </div>
+                <div class="strength-text" id="strength-text">Password Strength: Empty</div>
+
+                <!-- Password Requirements Checklist -->
+                <ul class="password-checklist">
+                  <li id="req-length">✖ Min 8 characters</li>
+                  <li id="req-uppercase">✖ At least 1 uppercase letter (A-Z)</li>
+                  <li id="req-lowercase">✖ At least 1 lowercase letter (a-z)</li>
+                  <li id="req-digit">✖ At least 1 number (0-9)</li>
+                  <li id="req-special">✖ At least 1 special character (@$!%*?&)</li>
+                </ul>
+              </div>
+
+              <button type="submit" class="btn btn-emerald btn-block" id="btn-register">
+                <span>Create Secure Account</span>
+              </button>
+            </form>
+
+          </div>
+
+          <!-- Auth Info Side Card -->
+          <div class="card glass-card info-card">
+            <h3>🔐 Built-In Security Features</h3>
+            <ul class="feature-list">
+              <li>
+                <span class="feature-icon">🛡️</span>
+                <div>
+                  <strong>Bcrypt Password Hashing</strong>
+                  <p>Passwords salted and hashed with cost factor 12. Plaintext never touches the database.</p>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">💉</span>
+                <div>
+                  <strong>SQL Injection Defense</strong>
+                  <p>100% Parameterized prepared statements (`SELECT * FROM users WHERE email = ?`).</p>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">🧪</span>
+                <div>
+                  <strong>Input Sanitization & XSS Defense</strong>
+                  <p>Server-side `express-validator` HTML escaping and strict Content Security Policy (CSP).</p>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">🍪</span>
+                <div>
+                  <strong>HttpOnly & SameSite Sessions</strong>
+                  <p>Session tokens stored in SQLite DB. Cookies marked `HttpOnly` to prevent JS theft.</p>
+                </div>
+              </li>
+              <li>
+                <span class="feature-icon">⏱️</span>
+                <div>
+                  <strong>Rate Limiting & Brute-Force Block</strong>
+                  <p>Max 5 auth requests per 15 min window to halt credential stuffing.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+
+      <!-- ================= TAB 2: USER DASHBOARD (PROTECTED PAGE) ================= -->
+      <section class="tab-panel" id="dashboard-tab">
+        <div id="user-dashboard-content">
+          <!-- Populated dynamically by JS -->
+          <div class="card glass-card placeholder-card">
+            <h2>🔒 Protected User Dashboard</h2>
+            <p>Please log in to view your user profile, active session details, and security audit logs.</p>
+            <button class="btn btn-primary" onclick="switchTab('auth-tab')">Go to Login</button>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ================= TAB 3: ADMIN CONTROL PANEL (RBAC PROTECTED) ================= -->
+      <section class="tab-panel" id="admin-tab">
+        <div id="admin-panel-content">
+          <!-- Populated dynamically by JS -->
+          <div class="card glass-card placeholder-card">
+            <h2>⚡ Admin Control Panel (Role-Based Access Control)</h2>
+            <p>Access Restricted: Admin credentials required. Try logging in as <strong>admin@example.com</strong>.</p>
+            <button class="btn btn-primary" onclick="switchTab('auth-tab')">Go to Login</button>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ================= TAB 4: SECURITY LEARNING CENTER ================= -->
+      <section class="tab-panel" id="learning-tab">
+        <div class="learning-header">
+          <h2>📚 Cybersecurity & Web Development Learning Hub</h2>
+          <p>Explore beginner-friendly explanations of core security mechanisms implemented in this system.</p>
+        </div>
+
+        <div class="learning-grid">
+          
+          <!-- Concept Card 1: Password Hashing -->
+          <div class="card glass-card concept-card" onclick="openConceptModal('hashing')">
+            <div class="concept-badge">Cryptographic Storage</div>
+            <h3>🔑 Password Salting & Hashing</h3>
+            <p>Why storing plaintext passwords is catastrophic and how Bcrypt bcrypts salts defend against rainbow table attacks.</p>
+            <div class="concept-footer">
+              <span class="tech-tag">Bcryptjs</span>
+              <span class="tech-tag">Salt Rounds = 12</span>
+              <span class="btn-link">Read Guide →</span>
+            </div>
+          </div>
+
+          <!-- Concept Card 2: SQL Injection -->
+          <div class="card glass-card concept-card" onclick="openConceptModal('sqli')">
+            <div class="concept-badge">Database Security</div>
+            <h3>💉 SQL Injection (SQLi) Defense</h3>
+            <p>How malicious input like <code>' OR '1'='1</code> breaks raw SQL queries and how Prepared Statements solve it.</p>
+            <div class="concept-footer">
+              <span class="tech-tag">SQLite3</span>
+              <span class="tech-tag">Parameterized Queries</span>
+              <span class="btn-link">Read Guide →</span>
+            </div>
+          </div>
+
+          <!-- Concept Card 3: XSS & Input Validation -->
+          <div class="card glass-card concept-card" onclick="openConceptModal('xss')">
+            <div class="concept-badge">Client & Server Validation</div>
+            <h3>🧪 XSS & Input Sanitization</h3>
+            <p>Understanding Cross-Site Scripting, escaping HTML tags, and setting strict Content Security Policy headers.</p>
+            <div class="concept-footer">
+              <span class="tech-tag">express-validator</span>
+              <span class="tech-tag">Helmet CSP</span>
+              <span class="btn-link">Read Guide →</span>
+            </div>
+          </div>
+
+          <!-- Concept Card 4: Session Security -->
+          <div class="card glass-card concept-card" onclick="openConceptModal('session')">
+            <div class="concept-badge">Session Management</div>
+            <h3>🍪 Session Fixation & Cookie Flags</h3>
+            <p>Why session regeneration on login is mandatory and how <code>HttpOnly</code> & <code>SameSite</code> flags block cookie theft.</p>
+            <div class="concept-footer">
+              <span class="tech-tag">express-session</span>
+              <span class="tech-tag">HttpOnly</span>
+              <span class="btn-link">Read Guide →</span>
+            </div>
+          </div>
+
+          <!-- Concept Card 5: Role-Based Access Control -->
+          <div class="card glass-card concept-card" onclick="openConceptModal('rbac')">
+            <div class="concept-badge">Authorization</div>
+            <h3>🛡️ Role-Based Access Control (RBAC)</h3>
+            <p>Enforcing the Principle of Least Privilege: Why server-side authorization checks matter more than hiding UI buttons.</p>
+            <div class="concept-footer">
+              <span class="tech-tag">RBAC Middleware</span>
+              <span class="tech-tag">HTTP 403 Forbidden</span>
+              <span class="btn-link">Read Guide →</span>
+            </div>
+          </div>
+
+          <!-- Concept Card 6: Rate Limiting -->
+          <div class="card glass-card concept-card" onclick="openConceptModal('ratelimit')">
+            <div class="concept-badge">Threat Mitigation</div>
+            <h3>⏱️ Rate Limiting & Anti-Brute-Force</h3>
+            <p>How IP request throttling halts automated dictionary attacks and credential stuffing bots.</p>
+            <div class="concept-footer">
+              <span class="tech-tag">express-rate-limit</span>
+              <span class="tech-tag">HTTP 429</span>
+              <span class="btn-link">Read Guide →</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast-container"></div>
+
+  <!-- Concept Modal Overlay -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal-card card glass-card">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <div id="modal-body">
+        <!-- Content inserted dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
